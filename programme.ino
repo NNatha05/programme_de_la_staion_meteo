@@ -12,7 +12,7 @@ WebServer server(80);
 
 // Capteur BME680
 Adafruit_BME680 bme;
-
+// on est ici 
 // Altitude de référence pour le calcul de l'altitude
 #define SEALEVELPRESSURE_HPA (1013.25)
 
