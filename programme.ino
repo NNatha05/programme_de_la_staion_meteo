@@ -12,7 +12,8 @@ WebServer server(80);
 
 // Capteur BME680
 Adafruit_BME680 bme;
-// on est ici 
+// on est ici
+// et là on là bas 
 // Altitude de référence pour le calcul de l'altitude
 #define SEALEVELPRESSURE_HPA (1013.25)
 
@@ -20,7 +21,7 @@ const int led = 13;
 
 void handleRoot() {
   digitalWrite(led, 1);
-  
+
   // Lecture des données du capteur BME680
   float temperature = bme.temperature;
   float pressure = bme.pressure / 100.0;
@@ -42,7 +43,7 @@ void handleRoot() {
 
   // Envoi de la réponse HTML au client
   server.send(200, "text/html", page);
-  
+
   digitalWrite(led, 0);
 }
 
