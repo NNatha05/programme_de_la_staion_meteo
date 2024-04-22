@@ -1,4 +1,3 @@
-
 ///////////////////////////////////////////////////////////////////////////
 // Prénom et Nom : Nelen Nathan
 // Date : 25|06|2024
@@ -14,9 +13,13 @@
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 #include "Adafruit_BMP3XX.h"
+//#include <mesfonctions.h>
 
-  const char* ssid = "#LaboD5";
-const char* password = "0123456789";
+const char* ssid = "Proximus-Home-923458";
+//"#LaboD5";
+const char* password = "xjzn7y973uur3hkw";
+//   const char* ssid = "#LaboD5";
+// const char* password = "0123456789";
 
 WebServer serveur(80);
 
@@ -43,6 +46,7 @@ int nombreLectures = 0;
 void gestionInterruption() {
   compteImpulsions++;  // Incrémenter le compteur à chaque front montant détecté
 }
+
 // Fonction demandée par monsieur Mazzeo
 void calculerMoyennes() {
   sommeTemperatureBME += bme.temperature;
@@ -64,6 +68,7 @@ float obtenirHumiditeMoyenne() {
 float obtenirPressionMoyenne() {
   return (sommePressionBME + sommePressionBMP) / (2 * nombreLectures);
 }
+
 //*********************************************************************************************************************
 void gererRacine() {
   digitalWrite(LED_BUILTIN, HIGH);
@@ -90,10 +95,8 @@ void gererRacine() {
   page += "<h2>Capteur BME680 :</h2>";
   page += "<ul>";
   page += "<li>Température BME680: " + String(temperatureBME) + " *C</li>";
-  page += "<li>Pression BME680: " + String(pressionBME) + " hPa</li
-
-          > ";
-          page += "<li>Humidité BME680: " + String(humiditeBME) + " %</li>";
+  page += "<li>Pression BME680: " + String(pressionBME) + " hPa</li>";
+  page += "<li>Humidité BME680: " + String(humiditeBME) + " %</li>";
   page += "<li>Résistance au gaz BME680: " + String(resistanceGazBME) + " KOhms</li>";
   page += "<li>Altitude BME680: " + String(altitudeBME) + " m</li>";
   page += "</ul>";
@@ -120,7 +123,7 @@ void gererRacine() {
 void configuration() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  Serial.begin(115200);
+  Serial.begin(9600);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("");
@@ -168,7 +171,11 @@ void configuration() {
   Serial.println("Serveur HTTP démarré");
 }
 
-void boucle() {
+void setup() {
+  configuration();
+}
+
+void loop() {
   serveur.handleClient();
   delay(2);
 }
