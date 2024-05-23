@@ -3,7 +3,7 @@
 // Date : 25|06|2024
 // Classe : 6ème année secondaire Technique de qualification en électronique
 // Projet : La station météo
-// Matériel : ESP32, encodeur, BME680, BMP390L,
+// Matériel : ESP32, encodeur, BME680
 ///////////////////////////////////////////////////////////////////////////
 
 #include <WiFi.h>
@@ -12,22 +12,14 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
-#include "Adafruit_BMP3XX.h"
-//#include <mesfonctions.h>
 
-const char* ssid = "Proximus-Home-923458";
-//"#LaboD5";
+const char* ssid = "#LaboD5";
 const char* password = "xjzn7y973uur3hkw";
-//   const char* ssid = "#LaboD5";
-// const char* password = "0123456789";
 
 WebServer serveur(80);
 
 // Capteur BME680
 Adafruit_BME680 bme;
-
-// Capteur BMP3XX
-Adafruit_BMP3XX bmp;
 
 // Altitude de référence pour le calcul de l'altitude
 #define PRESSIONNIVEAUSEALE (1013.25)
@@ -39,8 +31,6 @@ const float facteur = 1.0 / 2.0;              // Facteur de conversion pour conv
 float sommeTemperatureBME = 0;
 float sommeHumiditeBME = 0;
 float sommePressionBME = 0;
-float sommeTemperatureBMP = 0;
-float sommePressionBMP = 0;
 int nombreLectures = 0;
 
 void gestionInterruption() {
@@ -52,21 +42,19 @@ void calculerMoyennes() {
   sommeTemperatureBME += bme.temperature;
   sommeHumiditeBME += bme.humidity;
   sommePressionBME += bme.pressure;
-  sommeTemperatureBMP += bmp.temperature;
-  sommePressionBMP += bmp.pressure;
   nombreLectures++;
 }
 
 float obtenirTemperatureMoyenne() {
-  return (sommeTemperatureBME + sommeTemperatureBMP) / (2 * nombreLectures);
+  return sommeTemperatureBME / nombreLectures;
 }
 
 float obtenirHumiditeMoyenne() {
-  return (sommeHumiditeBME) / nombreLectures;  // On utilise seulement les données du capteur BME680 pour l'humidité
+  return sommeHumiditeBME / nombreLectures;
 }
 
 float obtenirPressionMoyenne() {
-  return (sommePressionBME + sommePressionBMP) / (2 * nombreLectures);
+  return sommePressionBME / nombreLectures;
 }
 
 //*********************************************************************************************************************
@@ -78,10 +66,6 @@ void gererRacine() {
   float temperatureBME = bme.temperature;
   float pressionBME = bme.pressure / 100.0;  // Conversion en hPa
   float humiditeBME = bme.humidity;
-  float resistanceGazBME = bme.gas_resistance / 1000.0;
-  float altitudeBME = bme.readAltitude(PRESSIONNIVEAUSEALE);
-  float temperatureBMP = bmp.temperature;
-  float pressionBMP = bmp.pressure / 100.0;  // Conversion en hPa
 
   // Calcul de la vitesse du vent
   detachInterrupt(digitalPinToInterrupt(brocheEntree));                               // Détacher l'interruption pendant le calcul
@@ -97,13 +81,6 @@ void gererRacine() {
   page += "<li>Température BME680: " + String(temperatureBME) + " *C</li>";
   page += "<li>Pression BME680: " + String(pressionBME) + " hPa</li>";
   page += "<li>Humidité BME680: " + String(humiditeBME) + " %</li>";
-  page += "<li>Résistance au gaz BME680: " + String(resistanceGazBME) + " KOhms</li>";
-  page += "<li>Altitude BME680: " + String(altitudeBME) + " m</li>";
-  page += "</ul>";
-  page += "<h2>Capteur BMP3XX :</h2>";
-  page += "<ul>";
-  page += "<li>Température BMP3XX: " + String(temperatureBMP) + " *C</li>";
-  page += "<li>Pression BMP3XX: " + String(pressionBMP) + " hPa</li>";
   page += "</ul>";
   page += "<h2>Moyennes :</h2>";
   page += "<ul>";
@@ -123,7 +100,7 @@ void gererRacine() {
 void configuration() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  Serial.begin(9600);
+  Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("");
@@ -139,17 +116,6 @@ void configuration() {
   bme.setPressureOversampling(BME680_OS_4X);
   bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
   bme.setGasHeater(320, 150);
-
-  // Initialisation du capteur BMP3XX
-  if (!bmp.begin_I2C()) {
-    Serial.println("Impossible de trouver le capteur BMP3XX, vérifiez le câblage !");
-    while (1)
-      ;
-  }
-  bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
-  bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
-  bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-  bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
   // Attente de la connexion WiFi
   while (WiFi.status() != WL_CONNECTED) {
